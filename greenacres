@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Green Acres: Farm & Market Adventure</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to top, #7fb661 0%, #dff0d8 90%);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    overflow-x: hidden;
+  }
+  #gameContainer {
+    position: relative;
+  }
+  #farmCanvas {
+    border: 3px solid #286028;
+    background-color: #79a85c;
+    display: block;
+    touch-action: none;
+    image-rendering: pixelated;
+    border-radius: 12px;
+    box-shadow: 0 0 15px #3e6e1c inset;
+  }
+  h1.title {
+    color: #286028;
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 3px #7aad50;
+    user-select: text;
+  }
+  #infoPanel {
+    margin-top: 10px;
+    width: 630px;
+    display: flex;
+    justify-content: space-between;
+    background: #e6f2d9;
+    border: 2px solid #286028;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: bold;
+    user-select: text;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 14px;
+    box-shadow: inset 0 0 8px #9fbc82;
+    color: #2a4900;
+  }
+  #shop {
+    margin-top: 15px;
+    max-width: 630px;
+    background: #e3f2be;
+    border: 3px solid #286028;
+    border-radius: 10px;
+    padding: 20px 25px;
+    box-sizing: border-box;
+    color: #1e480e;
+    box-shadow: 0 6px 18px #a3c060;
+    user-select: none;
+    position: relative;
+    z-index: 10;
+  }
+  #shop h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: bolder;
+    color: #2f7a17;
+    text-shadow: 1px 1px 1px #a7cc72;
+  }
+  #items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 14px;
+  }
+  .shop-item {
+    background: linear-gradient(135deg, #b3dca3 0%, #9dc779 100%);
+    border: 2.5px solid #4a7632;
+    border-radius: 10px;
+    padding: 12px 10px;
+    width: 140px;
+    text-align: center;
+    box-shadow: inset 0 0 15px #7bad4f;
+    user-select: none;
+    font-size: 14px;
+    color: #2f4d0f;
+    transition: transform 0.2s ease;
+  }
+  .shop-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #4caf5088;
+  }
+  .shop-item button {
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 7px;
+    border: none;
+    background-color: #518430;
+    color: #ebf3d4;
+    font-weight: 700;
+    padding: 7px 14px;
+    font-size: 15px;
+    box-shadow: 0 2px 7px #356214;
+    transition: background-color 0.3s ease;
+  }
+  .shop-item button:disabled {
+    background-color: #aec88d;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .shop-item button:hover:not(:disabled) {
+    background-color: #3a601a;
+  }
+  #message {
+    margin-top: 12px;
+    height: 28px;
+    color: #286028;
+    font-weight: 800;
+    min-height: 28px;
+    user-select: none;
+    font-family: 'Segoe UI Semibold', sans-serif;
+    text-shadow: 1px 1px 1px #c2e28c;
+    transition: opacity 0.5s ease;
+  }
+  #tools {
+    margin-top: 15px;
+    max-width: 630px;
+    text-align: center;
+    user-select: none;
+  }
+  #tools button {
+    margin: 0 6px 14px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 3px solid #4a7632;
+    background-color: #a6d17e;
+    font-weight: 900;
+    cursor: pointer;
+    color: #355a19;
+    font-size: 18px;
+    transition: background-color 0.25s ease, box-shadow 0.3s ease;
+    box-shadow: inset 0 0 15px #85be3e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #tools button.active {
+    background-color: #476d22;
+    color: #e6f7b1;
+    border-color: #304c10;
+    box-shadow: 0 0 14px 3px #9dd35e;
+  }
+  #tools button:hover:not(.active) {
+    background-color: #9cc06c;
+    box-shadow: inset 0 0 18px #aadf57;
+  }
+  #sell-button {
+    margin-top: 12px;
+    width: 240px;
+    padding: 14px;
+    font-weight: 900;
+    background-color: #476d22;
+    color: #e2f0c0;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 5px 7px #354a0f;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    font-size: 16px;
+  }
+  #sell-button:disabled {
+    background-color: #aec88d;
+    cursor: not-allowed;
+  }
+  #sell-button:hover:not(:disabled) {
+    background-color: #304c10;
+    box-shadow: 0 7px 10px #536514;
+  }
+  #staminaBarContainer {
+    width: 180px;
+    height: 18px;
+    background: linear-gradient(to right, #283d0a, #547812);
+    border: 2px solid #476d22;
+    border-radius: 18px;
+    overflow: hidden;
+    margin: 0 auto 10px;
+    box-shadow: inset 0 0 6px #7bb748;
+  }
+  #staminaBar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #b3ee78, #497e02);
+    transition: width 0.4s ease-out;
+  }
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #e6f2d9bb;
+    border: 1.6px solid #437016;
+    border-radius: 5px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #2a4900;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+    user-select: none;
+    z-index: 1001;
+  }
+  #openOverlay {
+    pointer-events: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1000;
+    mix-blend-mode: screen;
+    background: radial-gradient(circle closest-side at var(--sun-x, 50%) var(--sun-y, 50%),
+                rgba(255 240 150 / 0.4), transparent 70%);
+    opacity: 0.5;
+    transition: background 1s linear;
+  }
+</style>
+</head>
+<body>
+<h1 class="title">Green Acres: Farm & Market Adventure</h1>
+<div id="gameContainer" style="position: relative;">
+  <canvas id="farmCanvas" width="424" height="318" tabindex="0" aria-label="Farm field"></canvas>
+  <div id="tooltip" role="tooltip"></div>
+</div>
+
+<div id="message" aria-live="polite"></div>
+
+<div id="infoPanel" aria-live="polite">
+  <div>💰 Money: $<span id="money">100</span></div>
+  <div>🌱 Seeds: <span id="seedInventory">None</span></div>
+  <div>🌾 Ready to Harvest: <span id="readyToHarvest">0</span></div>
+  <div>🧑‍🌾 Level: <span id="level">1</span></div>
+  <div id="staminaBarContainer" title="Stamina: Actions consume stamina, which slowly recovers">
+    <div id="staminaBar"></div>
+  </div>
+</div>
+
+<div id="tools" role="toolbar" aria-label="Tools">
+  <button id="tool-select" class="active" title="Select/Plant (Key 1)" aria-pressed="true">🌱 Plant</button>
+  <button id="tool-water" title="Water (Key 2)" aria-pressed="false">💧 Water</button>
+  <button id="tool-fertilize" title="Fertilize (Key 3)" aria-pressed="false">✨ Fertilize</button>
+  <button id="tool-harvest" title="Harvest (Key 4)" aria-pressed="false">🪓 Harvest</button>
+</div>
+
+<div id="shop" aria-label="Market">
+  <h2>Market</h2>
+  <div id="items"></div>
+  <button id="sell-button" disabled>Sell All Harvest</button>
+</div>
+
+<div id="openOverlay" aria-hidden="true"></div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('farmCanvas');
+  const ctx = canvas.getContext('2d');
+  const tooltip = document.getElementById('tooltip');
+  const openOverlay = document.getElementById('openOverlay');
+
+  const farmCols = 8;
+  const farmRows = 6;
+  const plotSize = 53;
+
+  let money = 100;
+  let messageTimeout;
+  let selectedTool = 'select'; // select, water, fertilize, harvest
+  let selectedSeed = null;
+  let level = 1;
+  let xp = 0;
+  let xpForNextLevel = 100;
+  let harvestedCrops = 0;
+
+  const staminaMax = 100;
+  let stamina = staminaMax;
+  const staminaCost = 10;
+  const staminaRecoveryRate = 3; // per second
+
+  // Day-night cycle
+  let dayTimeSeconds = 0;
+  const secondsPerDay = 180; // 3 minutes day cycle
+
+  const seedsData = {
+    carrot: {name: "Carrot", buyPrice: 10, growTime: 15, sellPrice: 30, emoji: "🥕"},
+    tomato: {name: "Tomato", buyPrice: 15, growTime: 25, sellPrice: 50, emoji: "🍅"},
+    corn: {name: "Corn", buyPrice: 20, growTime: 35, sellPrice: 70, emoji: "🌽"},
+    pumpkin: {name: "Pumpkin", buyPrice: 30, growTime: 50, sellPrice: 120, emoji: "🎃"},
+    strawberry: {name:"Strawberry", buyPrice: 18, growTime: 30, sellPrice: 60, emoji: "🍓"}
+  };
+
+  // Farm state for each plot
+  let farm = [];
+  for(let i=0; i<farmCols*farmRows; i++) {
+    farm.push({
+      state: 'empty',
+      seedType: null,
+      plantedAt: null,
+      growTime: null,
+      fertilized: false,
+      wateredUntil: null,
+    });
+  }
+
+  // Character position + emoji
+  let charPos = {x:0, y:0};
+  let charDrawPos = {x: 0, y: 0};
+  let charTargetPos = {x: 0, y: 0};
+  const charEmoji = '🧑‍🌾';
+
+  // DOM elements
+  const moneySpan = document.getElementById('money');
+  const seedInventorySpan = document.getElementById('seedInventory');
+  const readyToHarvestSpan = document.getElementById('readyToHarvest');
+  const messageDiv = document.getElementById('message');
+  const itemsDiv = document.getElementById('items');
+  const levelSpan = document.getElementById('level');
+  const sellButton = document.getElementById('sell-button');
+
+  const staminaBar = document.getElementById('staminaBar');
+
+  const toolButtons = {
+    select: document.getElementById('tool-select'),
+    water: document.getElementById('tool-water'),
+    fertilize: document.getElementById('tool-fertilize'),
+    harvest: document.getElementById('tool-harvest')
+  };
+
+  // Seed inventory
+  const seedInventory = {};
+  for(let s in seedsData) seedInventory[s] = 0;
+
+  // Message display with fade
+  function showMessage(msg, duration=3500){
+    clearTimeout(messageTimeout);
+    messageDiv.textContent = msg;
+    messageDiv.style.opacity = '1';
+    messageTimeout = setTimeout(() => {
+      messageDiv.style.opacity = '0';
+    }, duration);
+  }
+
+  // Clamp helper
+  function clamp(v,min,max){
+    return v < min ? min : v > max ? max : v;
+  }
+
+  // Market render
+  function renderMarket() {
+    itemsDiv.innerHTML = '';
+    for(let seed in seedsData){
+      const data = seedsData[seed];
+      const item = document.createElement('div');
+      item.className = 'shop-item';
+      item.innerHTML = `
+        <div style="font-size: 26px; cursor:pointer;" title="Select seed">${data.emoji}</div>
+        <div style="cursor:pointer" title="Select seed">${data.name}</div>
+        <div>Price: $${data.buyPrice}</div>
+        <button id="buy-${seed}" ${money < data.buyPrice ? 'disabled' : ''}>Buy</button>
+      `;
+      itemsDiv.appendChild(item);
+
+      item.querySelector('button').addEventListener('click', () => buySeed(seed));
+
+      // Click on name or emoji selects seed if owned
+      item.querySelector('div:nth-child(2)').addEventListener('click', () => {
+        if(seedInventory[seed] > 0){
+          selectedSeed = seed;
+          selectedTool = 'select';
+          updateToolsUI();
+          showMessage(`Selected ${data.name} seed for planting.`);
+        }
+      });
+      item.querySelector('div:nth-child(1)').addEventListener('click', () => {
+        if(seedInventory[seed] > 0){
+          selectedSeed = seed;
+          selectedTool = 'select';
+          updateToolsUI();
+          showMessage(`Selected ${data.name} seed for planting.`);
+        }
+      });
+    }
+    updateSeedInventoryUI();
+  }
+
+  // Update seed inventory UI
+  function updateSeedInventoryUI() {
+    const entries = Object.entries(seedInventory).filter(([k,v]) => v > 0);
+    if(entries.length === 0){
+      seedInventorySpan.textContent = 'None';
+      return;
+    }
+    seedInventorySpan.textContent = entries.map(([k,v]) => `${seedsData[k].emoji} ${seedsData[k].name}: ${v}`).join(', ');
+  }
+
+  // Buy seed
+  function buySeed(seed) {
+    const data = seedsData[seed];
+    if(money >= data.buyPrice){
+      money -= data.buyPrice;
+      seedInventory[seed]++;
+      selectedSeed = seed;
+      selectedTool = 'select';
+      updateMoneyUI();
+      updateSeedInventoryUI();
+      renderMarket();
+      updateToolsUI();
+      showMessage(`Bought 1 ${data.name} seed.`);
+    } else {
+      showMessage("Not enough money to buy seed!");
+    }
+  }
+  // Update money UI
+  function updateMoneyUI() {
+    moneySpan.textContent = money.toFixed(2);
+  }
+
+  // Update ready to harvest UI
+  function updateReadyCountUI() {
+    const count = farm.reduce((acc,p) => acc + (p.state === 'ready' ? 1 : 0), 0);
+    readyToHarvestSpan.textContent = count;
+    sellButton.disabled = count === 0;
+  }
+
+  // Update XP & level UI
+  function updateLevelUI() {
+    levelSpan.textContent = level;
+  }
+
+  // Stamina controls
+  function updateStaminaUI(){
+    let perc = (stamina / staminaMax)*100;
+    staminaBar.style.width = perc + '%';
+    staminaBar.style.background = `linear-gradient(to right, hsl(${perc*1.2}, 80%, 60%), hsl(${perc*0.7}, 50%, 45%))`;
+  }
+
+  // Regenerate stamina every second
+  setInterval(()=>{
+    if(stamina < staminaMax){
+      stamina += staminaRecoveryRate;
+      if(stamina > staminaMax) stamina = staminaMax;
+      updateStaminaUI();
+    }
+  }, 1000);
+
+  // Plant seed in plot
+  function plantSeed(index) {
+    if(stamina < staminaCost){
+      showMessage("Too tired to plant! Wait to recover stamina.");
+      return false;
+    }
+    const plot = farm[index];
+    if(plot.state === 'empty' && selectedSeed && seedInventory[selectedSeed] > 0){
+      plot.state = 'planted';
+      plot.seedType = selectedSeed;
+      plot.plantedAt = Date.now();
+      plot.growTime = seedsData[selectedSeed].growTime * (1 - (level -1)*0.1);
+      if(plot.growTime < 5) plot.growTime = 5;
+      plot.fertilized = false;
+      plot.wateredUntil = null;
+      seedInventory[selectedSeed]--;
+      stamina -= staminaCost;
+      updateStaminaUI();
+      showMessage(`Planted ${seedsData[selectedSeed].name} seed.`);
+      updateSeedInventoryUI();
+      renderMarket();
+      addXp(15);
+      renderFarm();
+      updateReadyCountUI();
+      return true;
+    } else {
+      showMessage("Cannot plant here or no seed selected.");
+      return false;
+    }
+  }
+
+  // Harvest plot
+  function harvestPlot(index) {
+    if(stamina < staminaCost){
+      showMessage("Too tired to harvest! Wait to recover stamina.");
+      return false;
+    }
+    const plot = farm[index];
+    if(plot.state === 'ready'){
+      plot.state = 'empty';
+      const salePrice = seedsData[plot.seedType].sellPrice;
+      money += salePrice;
+      plot.seedType = null;
+      plot.plantedAt = null;
+      plot.growTime = null;
+      plot.fertilized = false;
+      plot.wateredUntil = null;
+      stamina -= staminaCost;
+      updateStaminaUI();
+      harvestedCrops++;
+      showMessage(`Harvested and sold for $${salePrice.toFixed(2)}!`);
+      updateMoneyUI();
+      addXp(20);
+      renderFarm();
+      updateReadyCountUI();
+      return true;
+    } else {
+      showMessage("Nothing to harvest here.");
+      return false;
+    }
+  }
+
+  // Water plot (planted only)
+  function waterPlot(index) {
+    if(stamina < staminaCost){
+      showMessage("Too tired to water! Wait to recover stamina.");
+      return false;
+    }
+    const plot = farm[index];
+    if(plot.state === 'planted'){
+      plot.wateredUntil = Date.now() + 60000; // water effect 1 minute
+      stamina -= staminaCost;
+      updateStaminaUI();
+      showMessage("Watered plot: growth sped up temporarily.");
+      renderFarm();
+      return true;
+    } else {
+      showMessage("Can only water planted plots.");
+      return false;
+    }
+  }
+
+  // Fertilize plot (empty only)
+  function fertilizePlot(index){
+    if(stamina < staminaCost){
+      showMessage("Too tired to fertilize! Wait to recover stamina.");
+      return false;
+    }
+    const plot = farm[index];
+    if(plot.state === 'empty'){
+      plot.fertilized = true;
+      stamina -= staminaCost;
+      updateStaminaUI();
+      showMessage("Fertilized plot: crops grow 30% faster here.");
+      renderFarm();
+      return true;
+    }
+    showMessage("You can only fertilize empty plots.");
+    return false;
+  }
+
+  // XP and leveling
+  function addXp(amount){
+    xp += amount;
+    if(xp >= xpForNextLevel){
+      xp -= xpForNextLevel;
+      level++;
+      xpForNextLevel = Math.floor(xpForNextLevel * 1.4);
+      showMessage(`Level up! You are now level ${level}. Crops grow faster!`);
+      // Speed up all planted crops by 10% per level
+      farm.forEach(plot=>{
+        if(plot.state==='planted'){
+          plot.growTime *= 0.9;
+          if(plot.growTime < 5) plot.growTime = 5;
+        }
+      });
+    }
+    updateLevelUI();
+  }
+
+  // Update growth per animation frame
+  function updateGrowth() {
+    const now = Date.now();
+    farm.forEach(plot=>{
+      if(plot.state === 'planted'){
+        let watered = plot.wateredUntil && plot.wateredUntil > now;
+        let adjustedGrowTime = plot.growTime;
+        if(watered) adjustedGrowTime /= 1.5;
+        if(plot.fertilized) adjustedGrowTime *= 0.7;
+        let elapsed = (now - plot.plantedAt)/1000;
+        if(elapsed >= adjustedGrowTime){
+          plot.state = 'ready';
+        }
+      }
+    });
+    updateReadyCountUI();
+  }
+
+  const moveSpeed = 0.18; // 0-1 tween speed per frame
+
+  // Animate character draw pos towards target pos
+  function animateCharacter() {
+    const targetPx = charTargetPos.x * plotSize + plotSize / 2;
+    const targetPy = charTargetPos.y * plotSize + plotSize / 2 + 3;
+    charDrawPos.x += (targetPx - charDrawPos.x) * moveSpeed;
+    charDrawPos.y += (targetPy - charDrawPos.y) * moveSpeed;
+  }
+
+  // Render farm + plants + character + sun
+  function renderFarm(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Soil pattern background
+    const patternCanvas = document.createElement('canvas');
+    patternCanvas.width = patternCanvas.height = 8;
+    const pctx = patternCanvas.getContext('2d');
+    pctx.fillStyle = '#7aa84b';
+    pctx.fillRect(0, 0, 8, 8);
+    pctx.fillStyle = '#6c973e';
+    pctx.fillRect(0, 4, 8, 4);
+    const pattern = ctx.createPattern(patternCanvas, 'repeat');
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    for(let y=0; y<farmRows; y++){
+      for(let x=0; x<farmCols; x++){
+        const idx = y*farmCols + x;
+        const plot = farm[idx];
+        const px = x*plotSize;
+        const py = y*plotSize;
+
+        // Soil base color + gradient
+        let baseColor = '#8b5e3c';
+        if(plot.state === 'planted') baseColor = '#a06a35';
+        if(plot.state === 'ready') baseColor = '#deb57c';
+
+        const soilGradient = ctx.createLinearGradient(px, py, px, py+plotSize);
+        soilGradient.addColorStop(0, baseColor);
+        soilGradient.addColorStop(1, '#4d2f1a');
+        ctx.fillStyle = soilGradient;
+        ctx.fillRect(px, py, plotSize-3, plotSize-3);
+
+        // Fertilized outline
+        if(plot.fertilized){
+          ctx.strokeStyle = 'gold';
+          ctx.lineWidth = 4;
+          ctx.shadowColor = '#f0f76a';
+          ctx.shadowBlur = 10;
+          ctx.strokeRect(px+3, py+3, plotSize-10, plotSize-10);
+          ctx.shadowBlur = 0;
+        }
+
+        // Water glow behind plant
+        if(plot.wateredUntil && plot.wateredUntil > Date.now()){
+          ctx.shadowColor = '#3dd0ff';
+          ctx.shadowBlur = 18;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+
+        // Draw plant emoji and animated growth %
+        if(plot.state === 'planted'){
+          const elapsed = (Date.now() - plot.plantedAt)/1000;
+          let watered = plot.wateredUntil && plot.wateredUntil > Date.now();
+          let fert = plot.fertilized;
+          let adjustedGrowTime = plot.growTime;
+          if(watered) adjustedGrowTime /= 1.5;
+          if(fert) adjustedGrowTime *= 0.7;
+          let progress = clamp(elapsed / adjustedGrowTime, 0, 1);
+          let scale = 0.9 + 0.15 * Math.sin(Date.now()/300 + idx);
+
+          ctx.font = `${32 * scale}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + 0.75*progress})`;
+          ctx.fillText(seedsData[plot.seedType].emoji + ` ${Math.floor(progress*100)}%`, px + plotSize/2, py + plotSize/2 + 3);
+        } else if(plot.state === 'ready'){
+          ctx.font = '38px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#fffbf0';
+          ctx.shadowColor = '#b4a92d';
+          ctx.shadowBlur = 6;
+          ctx.fillText(seedsData[plot.seedType].emoji + ' 🌾', px + plotSize/2, py + plotSize/2 + 4);
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // Draw character
+    animateCharacter();
+    ctx.font = '46px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Shadow under character
+    ctx.fillStyle = 'rgba(0,0,0,0.17)';
+    ctx.beginPath();
+    ctx.ellipse(charDrawPos.x, charDrawPos.y + 22, 18, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Character emoji
+    ctx.fillStyle = '#345218';
+    ctx.fillText(charEmoji, charDrawPos.x, charDrawPos.y + 6);
+  }
+
+  // Tool buttons logic + UI update
+  for(const [tool, btn] of Object.entries(toolButtons)){
+    btn.addEventListener('click', () => {
+      selectedTool = tool;
+      selectedSeed = null;
+      updateToolsUI();
+      showMessage(`Selected tool: ${tool.charAt(0).toUpperCase() + tool.slice(1)}`);
+    });
+  }
+  function updateToolsUI(){
+    for(const [tool, btn] of Object.entries(toolButtons)){
+      btn.classList.toggle('active', tool===selectedTool);
+      btn.setAttribute('aria-pressed', tool===selectedTool ? 'true' : 'false');
+    }
+  }
+
+  // Character movement with arrow/WASD keys (smoothed)
+  function moveCharacter(dx, dy) {
+    const nx = clamp(charTargetPos.x + dx, 0, farmCols -1);
+    const ny = clamp(charTargetPos.y + dy, 0, farmRows -1);
+    charTargetPos = {x: nx, y: ny};
+  }
+
+  window.addEventListener('keydown', e => {
+    switch(e.key.toLowerCase()){
+      case 'arrowleft':
+      case 'a': moveCharacter(-1, 0); e.preventDefault(); break;
+      case 'arrowright':
+      case 'd': moveCharacter(1, 0); e.preventDefault(); break;
+      case 'arrowup':
+      case 'w': moveCharacter(0, -1); e.preventDefault(); break;
+      case 'arrowdown':
+      case 's': moveCharacter(0, 1); e.preventDefault(); break;
+      case ' ':
+      case 'enter':
+        interactCurrentPlot();
+        e.preventDefault();
+        break;
+      case '1': toolButtons.select.click(); break;
+      case '2': toolButtons.water.click(); break;
+      case '3': toolButtons.fertilize.click(); break;
+      case '4': toolButtons.harvest.click(); break;
+    }
+  });
+
+  // Interact with current plot by selected tool
+  function interactCurrentPlot() {
+    const idx = charTargetPos.y * farmCols + charTargetPos.x;
+    const plot = farm[idx];
+    switch(selectedTool){
+      case 'select':
+        if(plot.state === 'empty'){
+          plantSeed(idx);
+        } else if(plot.state === 'ready'){
+          harvestPlot(idx);
+        } else {
+          showMessage('This crop is still growing.');
+        }
+        break;
+      case 'water': waterPlot(idx); break;
+      case 'fertilize': fertilizePlot(idx); break;
+      case 'harvest': harvestPlot(idx); break;
+    }
+  }
+
+  // Sell all harvested crops button
+  sellButton.addEventListener('click', () => {
+    let totalEarned = 0;
+    farm.forEach(p => {
+      if(p.state === 'ready'){
+        totalEarned += seedsData[p.seedType].sellPrice;
+        p.state = 'empty';
+        p.seedType = null;
+        p.plantedAt = null;
+        p.growTime = null;
+        p.fertilized = false;
+        p.wateredUntil = null;
+      }
+    });
+    if(totalEarned > 0){
+      money += totalEarned;
+      updateMoneyUI();
+      showMessage(`Sold all ready crops for $${totalEarned.toFixed(2)}!`);
+      renderFarm();
+      updateReadyCountUI();
+    } else {
+      showMessage('No crops ready to sell!');
+    }
+  });
+
+  // Click farm canvas: move + interact
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / plotSize);
+    const y = Math.floor((e.clientY - rect.top) / plotSize);
+    if(x >= 0 && x < farmCols && y >= 0 && y < farmRows){
+      charTargetPos = {x, y};
+      renderFarm();
+      interactCurrentPlot();
+    }
+  });
+
+  // Tooltip for plots
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / plotSize);
+    const y = Math.floor((e.clientY - rect.top) / plotSize);
+    if(x >= 0 && x < farmCols && y >= 0 && y < farmRows){
+      const idx = y * farmCols + x;
+      const plot = farm[idx];
+      let tip = "";
+      if(plot.state === 'empty'){
+        tip = "Empty Plot";
+        if(plot.fertilized) tip += " (Fertilized)";
+      }
+      else if(plot.state === 'planted'){
+        let elapsed = ((Date.now() - plot.plantedAt)/1000).toFixed(1);
+        tip = `${seedsData[plot.seedType].name} growing\n${elapsed}s / ${plot.growTime.toFixed(1)}s`;
+        if(plot.wateredUntil && plot.wateredUntil > Date.now()) tip += " (Watered)";
+        if(plot.fertilized) tip += " (Fertilized)";
+      }
+      else if(plot.state === 'ready'){
+        tip = `${seedsData[plot.seedType].name} ready to harvest!`;
+      }
+      showTooltip(e.clientX, e.clientY, tip);
+    } else {
+      hideTooltip();
+    }
+  });
+  canvas.addEventListener('mouseleave', hideTooltip);
+
+  function showTooltip(x, y, text){
+    if(!text){
+      tooltip.style.opacity = '0'; 
+      return;
+    }
+    tooltip.style.left = (x + 16) + 'px';
+    tooltip.style.top = (y + 16) + 'px';
+    tooltip.textContent = text;
+    tooltip.style.opacity = '1';
+  }
+  function hideTooltip(){
+    tooltip.style.opacity = '0';
+  }
+
+  // Day-night cycle: animate sun overlay around canvas
+  function updateDayNightOverlay(){
+    dayTimeSeconds++;
+    if(dayTimeSeconds > secondsPerDay) dayTimeSeconds = 0;
+
+    // Sun position: from left bottom to right bottom in arc
+    const progress = dayTimeSeconds / secondsPerDay; // 0-1
+    // Using sine wave vertical elevation 0 to 60 px up and horizontal along screen
+    const sunX = progress * window.innerWidth;
+    const sunY = window.innerHeight * 0.15 - Math.sin(progress * Math.PI) * 80;
+
+    // Set CSS variables to move radial-gradient circle (sun light)
+    openOverlay.style.setProperty('--sun-x', `${sunX}px`);
+    openOverlay.style.setProperty('--sun-y', `${sunY}px`);
+
+    // Adjust overlay opacity for day-night fade (fade out during night)
+    const dayOpacity = Math.sin(progress * Math.PI); // 0 at night start/end, 1 at noon
+    openOverlay.style.opacity = 0.1 + 0.5*dayOpacity;
+  }
+
+  // Update growth and day cycle each frame
+  let lastFrameTime = Date.now();
+  function gameLoop(){
+    let now = Date.now();
+    let delta = (now - lastFrameTime) / 1000;
+    lastFrameTime = now;
+
+    updateGrowth(delta);
+    animateCharacter();
+    renderFarm();
+    updateDayNightOverlay();
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Initialize starting draw pos
+  charDrawPos.x = charPos.x*plotSize + plotSize/2;
+  charDrawPos.y = charPos.y*plotSize + plotSize/2 + 3;
+  charTargetPos = { ...charPos };
+
+  // Init UI and start loop
+  renderFarm();
+  renderMarket();
+  updateMoneyUI();
+  updateSeedInventoryUI();
+  updateReadyCountUI();
+  updateLevelUI();
+  updateToolsUI();
+  updateStaminaUI();
+
+  requestAnimationFrame(gameLoop);
+
+})();
+</script>
+</body>
+</html>
